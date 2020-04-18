@@ -1,0 +1,19 @@
+version: '3'
+services:
+  web:
+    build:
+      context: docker/web
+      args:
+        - "APIKEY=${APIKEY}"
+    ports:
+      - "${WEB_PORT}:8080"
+  gw:
+    build: ../..
+    ports:
+      - "${GW_UDP_PORT_RANGE}:${GW_UDP_PORT_RANGE}/udp"
+      - "${GW_PORT}:${GW_PORT}"
+  camera:
+    build: docker/camera
+    volumes:
+      - .:/go/src/github.com/bookun/skyway-webrtc-gateway/samples/golang
+    tty: true
