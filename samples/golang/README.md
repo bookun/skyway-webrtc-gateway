@@ -1,4 +1,4 @@
-# skyway-gateway Go client
+# skyway-gateway Go client sample
 
 skyway-gateway を利用するためのクライアントをGoで書いたサンプルです。
 
@@ -11,31 +11,51 @@ skyway-gateway を利用するためのクライアントをGoで書いたサン
 
 ## Get started
 
-1. skyway-gateway および skyway-js-sdkを用いたサンプルアプリを立ち上げる
+1. .envを書き換える
+
+```
+$ cp .env.sample .env
+```
+
+その後 `.env` 内の APIKEY を Skyway から入手したAPIKEYに変更する
+
+2. skyway-gateway および skyway-js-sdkを用いたサンプルアプリを立ち上げる
 
 ```
 $ docker-compose up -d
 ```
 
-2. サンプルアプリケーションからCallされるGWクライアントを起動する
+3. サンプルアプリケーションを開く
+
+http://localhost:8080/examples/p2p-media
+
+4. サンプルアプリケーションからCallされるGWクライアントを起動する
 
 ```
-$ cd cmd/callee
-$ APIKEY=YOUR_API_KEY DOMAIN=YOUR_GW_DOMAIN PORT=YOUR_GW_PORT go run m
-ain.go
+$ docker-compose exec camera /bin/bash
+$ ./callee
 ```
 
 ここでは `PEER_ID` を指定することもできる
 
 ```
-$ APIKEY=YOUR_API_KEY DOMAIN=YOUR_GW_DOMAIN PORT=YOUR_GW_PORT PEER_ID=hoge go run m
-ain.go
+$ PEER_ID=hoge ./calee
 ```
 
-3. カメラの映像を擬似したストリームを流す
+実行後に赤文字で表示されるVIDEO_PORTは `6.` で使用する
 
+
+5. `3.` で開いたブラウザから `4.` で指定したPeerIDにCallする
+
+6. ストリームを流す
+
+    `4.` とは別のターミナルで
+```
+$ docker-compose exec camera /bin/bash
+$ gst-launch-1.0 -v videotestsrc ! video/x-raw,framerate=20/1 ! videoscale ! videoconvert ! x264enc ! rtph264pay pt=100 ! udpsink host=gw port=50001
 ```
 
-```
+ここでの `port=500001` は適宜 `4.` で表示されている VIDEO_PORTに書き換える
 
-4. ブラウザから `2.` で指定したPeerIDにCallする
+
+7. ブラウザにストリームが映る

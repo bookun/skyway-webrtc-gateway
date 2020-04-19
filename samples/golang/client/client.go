@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 // Client is skyway-gateway client
@@ -23,10 +24,12 @@ type Client struct {
 // gwHost and gwPort is your skyway-gateway host and port
 func NewClient(apiKey, gwHost string, gwPort int) *Client {
 	return &Client{
-		apiKey:     apiKey,
-		gwHost:     gwHost,
-		gwPort:     gwPort,
-		httpClient: &http.Client{},
+		apiKey: apiKey,
+		gwHost: gwHost,
+		gwPort: gwPort,
+		httpClient: &http.Client{
+			Timeout: 10 * time.Second,
+		},
 	}
 }
 
@@ -197,7 +200,6 @@ func (c *Client) Call(token, peerID, targetID string, constraints Constraints, r
 	if err := json.NewEncoder(reqBody).Encode(p); err != nil {
 		return "", err
 	}
-	log.Println(reqBody.String())
 	resp, err := c.request(http.MethodPost, "media/connections", reqBody)
 	if err != nil {
 		return "", err
@@ -238,7 +240,9 @@ func (c *Client) WaitCall(peerID, token string) (string, error) {
 
 		var r io.Reader = resp.Body
 		r = io.TeeReader(r, os.Stderr)
-
+		if resp.StatusCode == 408 {
+			continue
+		}
 		if err := json.NewDecoder(resp.Body).Decode(respData); err != nil {
 			return "", err
 		}
@@ -269,7 +273,6 @@ func (c *Client) Answer(mediaConnectionID string, constraints Constraints, redir
 	if err := json.NewEncoder(reqBody).Encode(p); err != nil {
 		return err
 	}
-	log.Println(reqBody.String())
 	resp, err := c.request(http.MethodPost, fmt.Sprintf("media/connections/%s/answer", mediaConnectionID), reqBody)
 	if err != nil {
 		return err
@@ -326,6 +329,7 @@ func (c *Client) MediaConnectionClose(connectionID string) (*http.Response, erro
 }
 
 func (c *Client) request(method, path string, body io.Reader) (*http.Response, error) {
+	time.Sleep(1 * time.Second)
 	req, err := http.NewRequest(method, fmt.Sprintf("%s:%d/%s", c.gwHost, c.gwPort, path), body)
 	if err != nil {
 		return nil, err
@@ -335,6 +339,7 @@ func (c *Client) request(method, path string, body io.Reader) (*http.Response, e
 		return nil, err
 	}
 	if resp.StatusCode > 300 {
+		fmt.Printf("Request %s:%d/%s\n", c.gwHost, c.gwPort, path)
 		return nil, fmt.Errorf("get response statud code: %d", resp.StatusCode)
 	}
 	return resp, nil

@@ -16,32 +16,27 @@ func run(APIKey, peerID, gwDomain string, gwPort int) error {
 	gwClient := client.NewClient(APIKey, gwDomain, gwPort)
 
 	token, err := gwClient.CreatPeer(peerID, "localhost")
-	fmt.Printf("token: %s\n", token)
 	if err != nil {
 		return err
 	}
 
 	videoID, _, videoPort, err := gwClient.CreateMedia(true)
-	fmt.Printf("videoID: %s\n", videoID)
-	fmt.Printf("video_port: %d\n", videoPort)
+	fmt.Printf("\x1b[31mVIDEO PORT%d\x1b[0m\n", videoPort)
 	if err != nil {
 		return err
 	}
 
 	audioID, _, _, err := gwClient.CreateMedia(false)
-	fmt.Printf("audioID: %s\n", audioID)
 	if err != nil {
 		return err
 	}
 
 	videoRTCPID, _, _, err := gwClient.CreateRTCP()
-	fmt.Printf("videoRTCPID: %s\n", videoRTCPID)
 	if err != nil {
 		return err
 	}
 
 	audioRTCPID, _, _, err := gwClient.CreateRTCP()
-	fmt.Printf("audioRTCPID: %s\n", audioRTCPID)
 	if err != nil {
 		return err
 	}
@@ -114,7 +109,6 @@ func run(APIKey, peerID, gwDomain string, gwPort int) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("mediaConnectionID: %s\n", mediaConnectionID)
 
 	if err := gwClient.Answer(mediaConnectionID, constraints, redirect); err != nil {
 		return err
@@ -160,7 +154,7 @@ func main() {
 	if peerID == "" {
 		peerID = randPeerID(10)
 	}
-	fmt.Printf("peerID: %s\n", peerID)
+	fmt.Printf("\x1b[33mpeerID: %s\x1b[0m\n", peerID)
 
 	if gwDomain == "" {
 		log.Fatal("gwDomain env must be exported")

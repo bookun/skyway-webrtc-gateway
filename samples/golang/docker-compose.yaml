@@ -13,7 +13,11 @@ services:
       - "${GW_UDP_PORT_RANGE}:${GW_UDP_PORT_RANGE}/udp"
       - "${GW_PORT}:${GW_PORT}"
   camera:
-    build: docker/camera
+    build: .
     volumes:
       - .:/go/src/github.com/bookun/skyway-webrtc-gateway/samples/golang
+    environment:
+      - "APIKEY=${APIKEY}"
+      - "DOMAIN=http://gw"
+      - "PORT=${GW_PORT}"
     tty: true
